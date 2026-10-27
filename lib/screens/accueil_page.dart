@@ -5,6 +5,7 @@ import 'package:agrismart/widgets/zone_card.dart';
 import 'package:agrismart/widgets/fiche_exploitation.dart';
 // 1. N'OUBLIEZ PAS CET IMPORT :
 import 'package:agrismart/widgets/resume_exploitation.dart';
+import 'package:agrismart/widgets/zone_form.dart';
 
 class AccueilPage extends StatefulWidget {
   const AccueilPage({super.key});
@@ -27,6 +28,57 @@ class _AccueilPageState extends State<AccueilPage> {
       zone: zone,
       onAugmenter: () => _modifierHumidite(zone, 5),
       onDiminuer: () => _modifierHumidite(zone, -5),
+    );
+  }
+
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('AgriSmart'),
+      ),
+      body: /* Ton contenu existant (la liste, la fiche...) */,
+
+      // AJOUTE CECI :
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _ouvrirFormulaire(),
+        child: const Icon(Icons.add),
+      ),
+    );
+  }
+
+  void _ouvrirFormulaire() {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (ctx) {
+        return Padding(
+          // remonte la feuille quand le clavier apparait
+          padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
+          child: SingleChildScrollView(
+            child: ZoneForm(
+              onEnregistrer: (nouvelle) {
+
+                // TODO A : ajouter 'nouvelle' a _zones (dans setState)
+                setState(() {
+                  _zones.add(nouvelle);
+                });
+
+                // TODO B : fermer la feuille avec Navigator.pop(ctx)
+                Navigator.pop(ctx);
+
+                // TODO C : afficher un SnackBar "Zone ajoutée"
+                // (ScaffoldMessenger.of(context).showSnackBar(...))
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Zone ajoutée')),
+                );
+
+              },
+            ),
+          ),
+        );
+      },
     );
   }
 

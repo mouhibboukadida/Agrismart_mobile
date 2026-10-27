@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:agrismart/screens/accueil_page.dart';
 import 'package:agrismart/theme/app_theme.dart';
 
-void main() => runApp(const AgriSmartApp());
+void main() {
+  runApp(const AgriSmartApp());
+}
 
 class AgriSmartApp extends StatelessWidget {
   const AgriSmartApp({super.key});
@@ -11,6 +13,7 @@ class AgriSmartApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'AgriSmart',
+      debugShowCheckedModeBanner: false,
       theme: AppTheme.clair(),
       darkTheme: AppTheme.sombre(),
       themeMode: ThemeMode.system,
