@@ -27,12 +27,19 @@ class _AccueilPageState extends State<AccueilPage> {
       zone: zone,
       onAugmenter: () => _modifierHumidite(zone, 5),
       onDiminuer: () => _modifierHumidite(zone, -5),
-      // NOUVEAU : Appel du formulaire en mode édition au clic sur la carte
       onTap: () => _ouvrirFormulaire(zone: zone),
+      // EXERCICE 2 : Ajout de l'appui long pour supprimer
+      onLongPress: () => _confirmerSuppression(zone),
     );
   }
 
   void _ouvrirFormulaire({Zone? zone}) {
+    // EXERCICE 1 : On prépare la liste des noms existants en excluant la zone actuelle
+    final nomsExistants = _zones
+        .where((z) => z.nom != zone?.nom)
+        .map((z) => z.nom)
+        .toList();
+
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -41,14 +48,13 @@ class _AccueilPageState extends State<AccueilPage> {
           padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
           child: SingleChildScrollView(
             child: ZoneForm(
-              zone: zone, // On passe la zone à modifier (ou null si ajout)
+              zone: zone,
+              nomsExistants: nomsExistants, // On passe la liste au formulaire
               onEnregistrer: (nouvelle) {
                 setState(() {
                   if (zone == null) {
-                    // Mode AJOUT
                     _zones.add(nouvelle);
                   } else {
-                    // Mode MODIFICATION
                     final index = _zones.indexOf(zone);
                     _zones[index] = nouvelle;
                   }
@@ -63,6 +69,36 @@ class _AccueilPageState extends State<AccueilPage> {
         );
       },
     );
+  }
+
+  // EXERCICE 2 : Boîte de dialogue pour confirmer la suppression
+  Future<void> _confirmerSuppression(Zone zone) async {
+    final bool? reponse = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Supprimer la zone'),
+        content: Text('Supprimer la zone ${zone.nom} ?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false), // Annuler
+            child: const Text('Annuler'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true), // Confirmer
+            child: const Text('Supprimer', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+
+    if (reponse == true) {
+      setState(() {
+        _zones.remove(zone);
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Zone supprimée')),
+      );
+    }
   }
 
   @override
@@ -106,7 +142,7 @@ class _AccueilPageState extends State<AccueilPage> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => _ouvrirFormulaire(), // Mode ajout (zone = null)
+        onPressed: () => _ouvrirFormulaire(),
         child: const Icon(Icons.add),
       ),
     );

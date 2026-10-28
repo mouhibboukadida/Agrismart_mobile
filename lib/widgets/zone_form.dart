@@ -3,9 +3,15 @@ import 'package:agrismart/models/zone.dart';
 
 class ZoneForm extends StatefulWidget {
   final Zone? zone;
+  final List<String> nomsExistants;
   final void Function(Zone) onEnregistrer;
 
-  const ZoneForm({super.key, this.zone, required this.onEnregistrer});
+  const ZoneForm({
+    super.key,
+    this.zone,
+    required this.onEnregistrer,
+    required this.nomsExistants,
+  });
 
   @override
   State<ZoneForm> createState() => _ZoneFormState();
@@ -29,6 +35,21 @@ class _ZoneFormState extends State<ZoneForm> {
       _cultureCtrl.text = zone.culture;
       _seuilCtrl.text = _formater(zone.seuil);
     }
+  }
+
+  String? _validatorNom(String? valeur) {
+    final erreurTexte = _validatorTexte(valeur);
+    if (erreurTexte != null) return erreurTexte;
+
+    final nomSaisi = valeur!.trim().toLowerCase();
+
+    final existeDeja = widget.nomsExistants
+        .any((nom) => nom.toLowerCase() == nomSaisi);
+
+    if (existeDeja) {
+      return 'Ce nom existe déjà';
+    }
+    return null;
   }
 
   String _formater(double n) {
@@ -68,7 +89,6 @@ class _ZoneFormState extends State<ZoneForm> {
 
   void _soumettre() {
     if (_formKey.currentState!.validate()) {
-      // CORRECTION : On garde l'humidité ET la vanne de l'ancienne zone en mode édition
       final humidite = _modeEdition
           ? widget.zone!.humidite
           : (_lireNombre(_humiditeCtrl.text) ?? 0.0);
@@ -80,7 +100,7 @@ class _ZoneFormState extends State<ZoneForm> {
         _cultureCtrl.text.trim(),
         humidite,
         _lireNombre(_seuilCtrl.text) ?? 0.0,
-        vanneOuverte: vanne, // On passe la vanne conservée
+        vanneOuverte: vanne,
       );
 
       widget.onEnregistrer(nouvelleZone);
@@ -102,6 +122,8 @@ class _ZoneFormState extends State<ZoneForm> {
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 16),
+
+            // CHAMP NOM
             TextFormField(
               controller: _nomCtrl,
               decoration: const InputDecoration(
@@ -109,9 +131,13 @@ class _ZoneFormState extends State<ZoneForm> {
                 border: OutlineInputBorder(),
               ),
               textInputAction: TextInputAction.next,
-              validator: _validatorTexte,
+              // CORRECTION ICI : Utiliser _validatorNom au lieu de _validatorTexte
+              validator: _validatorNom,
             ),
+
             const SizedBox(height: 12),
+
+            // CHAMP CULTURE
             TextFormField(
               controller: _cultureCtrl,
               decoration: const InputDecoration(
@@ -125,7 +151,6 @@ class _ZoneFormState extends State<ZoneForm> {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // TODO 7 : On cache l'humidité en mode édition
                 if (!_modeEdition)
                   Expanded(
                     child: TextFormField(
