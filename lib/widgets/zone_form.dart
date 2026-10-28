@@ -68,24 +68,21 @@ class _ZoneFormState extends State<ZoneForm> {
 
   void _soumettre() {
     if (_formKey.currentState!.validate()) {
-      // 1. L'humidité : on garde l'ancienne en mode édition, sinon on lit le champ
+      // CORRECTION : On garde l'humidité ET la vanne de l'ancienne zone en mode édition
       final humidite = _modeEdition
           ? widget.zone!.humidite
           : (_lireNombre(_humiditeCtrl.text) ?? 0.0);
 
-      // 2. La vanne : on garde l'ancienne en mode édition, sinon fermée par défaut
       final vanne = _modeEdition ? widget.zone!.vanneOuverte : false;
 
-      // 3. Création de la nouvelle zone (Paramètres positionnels + vanne nommée)
       final nouvelleZone = Zone(
         _nomCtrl.text.trim(),
         _cultureCtrl.text.trim(),
         humidite,
         _lireNombre(_seuilCtrl.text) ?? 0.0,
-        vanneOuverte: vanne,
+        vanneOuverte: vanne, // On passe la vanne conservée
       );
 
-      // 4. On renvoie la zone créée à la page d'accueil
       widget.onEnregistrer(nouvelleZone);
     }
   }
@@ -105,8 +102,6 @@ class _ZoneFormState extends State<ZoneForm> {
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 16),
-
-            // Champ Nom
             TextFormField(
               controller: _nomCtrl,
               decoration: const InputDecoration(
@@ -117,8 +112,6 @@ class _ZoneFormState extends State<ZoneForm> {
               validator: _validatorTexte,
             ),
             const SizedBox(height: 12),
-
-            // Champ Culture
             TextFormField(
               controller: _cultureCtrl,
               decoration: const InputDecoration(
@@ -129,12 +122,10 @@ class _ZoneFormState extends State<ZoneForm> {
               validator: _validatorTexte,
             ),
             const SizedBox(height: 12),
-
-            // Ligne Humidité / Seuil
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Champ Humidité (caché en mode édition)
+                // TODO 7 : On cache l'humidité en mode édition
                 if (!_modeEdition)
                   Expanded(
                     child: TextFormField(
@@ -148,8 +139,6 @@ class _ZoneFormState extends State<ZoneForm> {
                     ),
                   ),
                 if (!_modeEdition) const SizedBox(width: 12),
-
-                // Champ Seuil
                 Expanded(
                   child: TextFormField(
                     controller: _seuilCtrl,
@@ -164,8 +153,6 @@ class _ZoneFormState extends State<ZoneForm> {
               ],
             ),
             const SizedBox(height: 16),
-
-            // Bouton de validation
             FilledButton(
               onPressed: _soumettre,
               child: Text(_modeEdition ? 'Enregistrer' : 'Ajouter'),

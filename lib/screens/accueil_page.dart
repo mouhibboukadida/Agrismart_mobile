@@ -3,7 +3,6 @@ import 'package:agrismart/data/jeu_de_donnees.dart';
 import 'package:agrismart/models/zone.dart';
 import 'package:agrismart/widgets/zone_card.dart';
 import 'package:agrismart/widgets/fiche_exploitation.dart';
-// 1. N'OUBLIEZ PAS CET IMPORT :
 import 'package:agrismart/widgets/resume_exploitation.dart';
 import 'package:agrismart/widgets/zone_form.dart';
 
@@ -28,52 +27,36 @@ class _AccueilPageState extends State<AccueilPage> {
       zone: zone,
       onAugmenter: () => _modifierHumidite(zone, 5),
       onDiminuer: () => _modifierHumidite(zone, -5),
+      // NOUVEAU : Appel du formulaire en mode édition au clic sur la carte
+      onTap: () => _ouvrirFormulaire(zone: zone),
     );
   }
 
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('AgriSmart'),
-      ),
-      body: /* Ton contenu existant (la liste, la fiche...) */,
-
-      // AJOUTE CECI :
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _ouvrirFormulaire(),
-        child: const Icon(Icons.add),
-      ),
-    );
-  }
-
-  void _ouvrirFormulaire() {
+  void _ouvrirFormulaire({Zone? zone}) {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       builder: (ctx) {
         return Padding(
-          // remonte la feuille quand le clavier apparait
           padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
           child: SingleChildScrollView(
             child: ZoneForm(
+              zone: zone, // On passe la zone à modifier (ou null si ajout)
               onEnregistrer: (nouvelle) {
-
-                // TODO A : ajouter 'nouvelle' a _zones (dans setState)
                 setState(() {
-                  _zones.add(nouvelle);
+                  if (zone == null) {
+                    // Mode AJOUT
+                    _zones.add(nouvelle);
+                  } else {
+                    // Mode MODIFICATION
+                    final index = _zones.indexOf(zone);
+                    _zones[index] = nouvelle;
+                  }
                 });
-
-                // TODO B : fermer la feuille avec Navigator.pop(ctx)
                 Navigator.pop(ctx);
-
-                // TODO C : afficher un SnackBar "Zone ajoutée"
-                // (ScaffoldMessenger.of(context).showSnackBar(...))
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Zone ajoutée')),
+                  SnackBar(content: Text(zone == null ? 'Zone ajoutée' : 'Zone modifiée')),
                 );
-
               },
             ),
           ),
@@ -92,10 +75,7 @@ class _AccueilPageState extends State<AccueilPage> {
       body: Column(
         children: [
           FicheExploitation(humiditeMoyenne: humiditeMoyenne(_zones)),
-
-          // 2. LE NOM DE LA CLASSE PREND DES MAJUSCULES :
           ResumeExploitation(zones: _zones),
-
           Expanded(
             child: LayoutBuilder(
               builder: (context, constraints) {
@@ -117,7 +97,7 @@ class _AccueilPageState extends State<AccueilPage> {
                 }
                 return ListView.separated(
                   itemCount: _zones.length,
-                  separatorBuilder: (_, __) => const Divider(height: 1),
+                  separatorBuilder: (_, _) => const Divider(height: 1),
                   itemBuilder: (context, index) => _carte(_zones[index]),
                 );
               },
@@ -125,6 +105,10 @@ class _AccueilPageState extends State<AccueilPage> {
           ),
         ],
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _ouvrirFormulaire(), // Mode ajout (zone = null)
+        child: const Icon(Icons.add),
+      ),
     );
   }
-} // 3. N'OUBLIEZ PAS CETTE ACCOLADE FERMANTE
+}

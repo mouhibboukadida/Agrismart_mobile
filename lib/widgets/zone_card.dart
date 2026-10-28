@@ -6,12 +6,14 @@ class ZoneCard extends StatelessWidget {
   final Zone zone;
   final VoidCallback onAugmenter;
   final VoidCallback onDiminuer;
+  final VoidCallback? onTap;
 
   const ZoneCard({
     super.key,
     required this.zone,
     required this.onAugmenter,
     required this.onDiminuer,
+    this.onTap,
   });
 
   @override
@@ -23,6 +25,9 @@ class ZoneCard extends StatelessWidget {
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Row(
@@ -83,6 +88,7 @@ class ZoneCard extends StatelessWidget {
           ],
         ),
       ),
+    )
     );
   }
 }
