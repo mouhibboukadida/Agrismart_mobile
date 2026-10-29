@@ -1,5 +1,6 @@
+import 'package:agrismart/screens/app_shell.dart';
 import 'package:flutter/material.dart';
-import 'package:agrismart/screens/accueil_page.dart';
+import 'package:agrismart/screens/app_shell.dart';
 import 'package:agrismart/theme/app_theme.dart';
 
 void main() {
@@ -17,7 +18,7 @@ class AgriSmartApp extends StatelessWidget {
       theme: AppTheme.clair(),
       darkTheme: AppTheme.sombre(),
       themeMode: ThemeMode.system,
-      home: const AccueilPage(),
+      home: const AppShell(),
     );
   }
 }

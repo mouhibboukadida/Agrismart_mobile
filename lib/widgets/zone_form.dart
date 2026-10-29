@@ -9,8 +9,8 @@ class ZoneForm extends StatefulWidget {
   const ZoneForm({
     super.key,
     this.zone,
-    required this.onEnregistrer,
     required this.nomsExistants,
+    required this.onEnregistrer,
   });
 
   @override
@@ -42,19 +42,13 @@ class _ZoneFormState extends State<ZoneForm> {
     if (erreurTexte != null) return erreurTexte;
 
     final nomSaisi = valeur!.trim().toLowerCase();
+    final existeDeja = widget.nomsExistants.any((nom) => nom.toLowerCase() == nomSaisi);
 
-    final existeDeja = widget.nomsExistants
-        .any((nom) => nom.toLowerCase() == nomSaisi);
-
-    if (existeDeja) {
-      return 'Ce nom existe déjà';
-    }
+    if (existeDeja) return 'Ce nom existe déjà';
     return null;
   }
 
-  String _formater(double n) {
-    return n % 1 == 0 ? n.toStringAsFixed(0) : n.toString();
-  }
+  String _formater(double n) => n % 1 == 0 ? n.toStringAsFixed(0) : n.toString();
 
   @override
   void dispose() {
@@ -65,9 +59,7 @@ class _ZoneFormState extends State<ZoneForm> {
     super.dispose();
   }
 
-  double? _lireNombre(String? texte) {
-    return double.tryParse((texte ?? '').trim().replaceAll(',', '.'));
-  }
+  double? _lireNombre(String? texte) => double.tryParse((texte ?? '').trim().replaceAll(',', '.'));
 
   String? _validatorTexte(String? valeur) {
     if (valeur == null || valeur.trim().length < 2) {
@@ -78,21 +70,14 @@ class _ZoneFormState extends State<ZoneForm> {
 
   String? _validatorPourcentage(String? valeur) {
     final nombre = _lireNombre(valeur);
-    if (nombre == null) {
-      return 'Veuillez saisir un nombre valide';
-    }
-    if (nombre < 0 || nombre > 100) {
-      return 'Le nombre doit être entre 0 et 100';
-    }
+    if (nombre == null) return 'Veuillez saisir un nombre valide';
+    if (nombre < 0 || nombre > 100) return 'Le nombre doit être entre 0 et 100';
     return null;
   }
 
   void _soumettre() {
     if (_formKey.currentState!.validate()) {
-      final humidite = _modeEdition
-          ? widget.zone!.humidite
-          : (_lireNombre(_humiditeCtrl.text) ?? 0.0);
-
+      final humidite = _modeEdition ? widget.zone!.humidite : (_lireNombre(_humiditeCtrl.text) ?? 0.0);
       final vanne = _modeEdition ? widget.zone!.vanneOuverte : false;
 
       final nouvelleZone = Zone(
@@ -102,7 +87,6 @@ class _ZoneFormState extends State<ZoneForm> {
         _lireNombre(_seuilCtrl.text) ?? 0.0,
         vanneOuverte: vanne,
       );
-
       widget.onEnregistrer(nouvelleZone);
     }
   }
@@ -117,33 +101,17 @@ class _ZoneFormState extends State<ZoneForm> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(
-              _modeEdition ? 'Modifier la zone' : 'Nouvelle zone',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 16),
-
-            // CHAMP NOM
+            // Le titre Text a été retiré ici
             TextFormField(
               controller: _nomCtrl,
-              decoration: const InputDecoration(
-                labelText: 'Nom de la zone',
-                border: OutlineInputBorder(),
-              ),
+              decoration: const InputDecoration(labelText: 'Nom de la zone', border: OutlineInputBorder()),
               textInputAction: TextInputAction.next,
-              // CORRECTION ICI : Utiliser _validatorNom au lieu de _validatorTexte
               validator: _validatorNom,
             ),
-
             const SizedBox(height: 12),
-
-            // CHAMP CULTURE
             TextFormField(
               controller: _cultureCtrl,
-              decoration: const InputDecoration(
-                labelText: 'Culture',
-                border: OutlineInputBorder(),
-              ),
+              decoration: const InputDecoration(labelText: 'Culture', border: OutlineInputBorder()),
               textInputAction: TextInputAction.next,
               validator: _validatorTexte,
             ),
@@ -155,10 +123,7 @@ class _ZoneFormState extends State<ZoneForm> {
                   Expanded(
                     child: TextFormField(
                       controller: _humiditeCtrl,
-                      decoration: const InputDecoration(
-                        labelText: 'Humidité (%)',
-                        border: OutlineInputBorder(),
-                      ),
+                      decoration: const InputDecoration(labelText: 'Humidité (%)', border: OutlineInputBorder()),
                       keyboardType: const TextInputType.numberWithOptions(decimal: true),
                       validator: _validatorPourcentage,
                     ),
@@ -167,10 +132,7 @@ class _ZoneFormState extends State<ZoneForm> {
                 Expanded(
                   child: TextFormField(
                     controller: _seuilCtrl,
-                    decoration: const InputDecoration(
-                      labelText: 'Seuil (%)',
-                      border: OutlineInputBorder(),
-                    ),
+                    decoration: const InputDecoration(labelText: 'Seuil (%)', border: OutlineInputBorder()),
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
                     validator: _validatorPourcentage,
                   ),

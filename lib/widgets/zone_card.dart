@@ -7,7 +7,7 @@ class ZoneCard extends StatelessWidget {
   final VoidCallback onAugmenter;
   final VoidCallback onDiminuer;
   final VoidCallback? onTap;
-  final VoidCallback? onLongPress; // NOUVEAU : Ajouté pour la suppression
+  final VoidCallback? onLongPress; // Ajouté pour la suppression
 
   const ZoneCard({
     super.key,
@@ -15,7 +15,7 @@ class ZoneCard extends StatelessWidget {
     required this.onAugmenter,
     required this.onDiminuer,
     this.onTap,
-    this.onLongPress, // NOUVEAU
+    this.onLongPress,
   });
 
   @override
