@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:agrismart/screens/a_propos_page.dart';
 
 class ProfilPage extends StatelessWidget {
   final int nombreZones;
@@ -28,10 +29,25 @@ class ProfilPage extends StatelessWidget {
           const Center(child: Text('Kébili, Tunisie')),
           const SizedBox(height: 16),
           const Divider(),
+
+          // LIGNE EXISTANTE :
           ListTile(
             leading: const Icon(Icons.grass),
             title: const Text('Zones suivies'),
             trailing: Text('$nombreZones'),
+          ),
+
+          // NOUVELLE LIGNE POUR L'EXERCICE 2 :
+          ListTile(
+            leading: const Icon(Icons.info_outline),
+            title: const Text('À propos'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const AProposPage()),
+              );
+            },
           ),
         ],
       ),
