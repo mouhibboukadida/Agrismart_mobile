@@ -1,19 +1,24 @@
 import 'package:flutter/material.dart';
-import 'package:agrismart/models/zone.dart';
+import 'package:provider/provider.dart';
+import 'package:agrismart/providers/zones_provider.dart';
 import 'package:agrismart/theme/app_theme.dart';
 import 'package:agrismart/widgets/resume_exploitation.dart';
 
 class StatistiquesPage extends StatelessWidget {
-  final List<Zone> zones;
+  // 3. SUPPRESSION du champ "final List<Zone> zones;"
 
-  const StatistiquesPage({super.key, required this.zones});
+  // 4. Le constructeur devient vide (plus de required this.zones)
+  const StatistiquesPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    // 5. ON ÉCOUTE LE PROVIDER ICI
+    // watch : la page sera reconstruite automatiquement si les zones changent
+    final zones = context.watch<ZonesProvider>().zones;
+
     final tri = [...zones]..sort((a, b) => a.humidite.compareTo(b.humidite));
     final aIrriguer = zones.where((z) => z.besoinIrrigation).length;
 
-    // TODO 1 ajoute la zone dans _zones
     final pourcentage = zones.isEmpty ? 0 : (aIrriguer * 100 / zones.length).round();
 
     return Scaffold(
@@ -21,13 +26,11 @@ class StatistiquesPage extends StatelessWidget {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: const Text('Statistiques'),
       ),
-      // TODO 2 
       body: zones.isEmpty
           ? const Center(child: Text('Aucune donnée à afficher'))
           : ListView(
         children: [
           ResumeExploitation(zones: zones),
-          // TODO 3
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(

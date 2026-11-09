@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart'; // <-- 1. IMPORT PROVIDER
 import 'package:agrismart/models/zone.dart';
+import 'package:agrismart/providers/zones_provider.dart'; // <-- 2. IMPORT DU PROVIDER
 import 'package:agrismart/screens/zone_detail_page.dart';
 import 'package:agrismart/screens/zone_form_page.dart';
 import 'package:agrismart/widgets/fiche_exploitation.dart';
@@ -7,53 +9,51 @@ import 'package:agrismart/widgets/resume_exploitation.dart';
 import 'package:agrismart/widgets/zone_card.dart';
 
 class ZonesPage extends StatelessWidget {
-  final List<Zone> zones;
-  final void Function(Zone zone, double delta) onModifierHumidite;
-  final void Function(Zone zone) onAjouter;
-  final void Function(Zone ancienne, Zone nouvelle) onRemplacer;
-  final void Function(Zone zone) onSupprimer;
+  // 3. SUPPRESSION DE TOUS LES CHAMPS (zones, onModifierHumidite, etc.)
 
-  const ZonesPage({
-    super.key,
-    required this.zones,
-    required this.onModifierHumidite,
-    required this.onAjouter,
-    required this.onRemplacer,
-    required this.onSupprimer,
-  });
+  // 4. LE CONSTRUCTEUR DEVIENT VIDE
+  const ZonesPage({super.key});
 
-  List<String> _noms({Zone? sauf}) {
-    return zones.where((z) => z != sauf).map((z) => z.nom).toList();
-  }
+  // 5. SUPPRESSION DE LA MÉTHODE _noms() (elle est maintenant dans le provider)
 
   void _message(BuildContext context, String texte) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(texte)));
   }
 
   Future<void> _ajouter(BuildContext context) async {
+    // On lit les noms depuis le provider (read car on est dans une action)
+    final noms = context.read<ZonesProvider>().noms();
+
     final nouvelle = await Navigator.push<Zone>(
       context,
       MaterialPageRoute(
-        builder: (_) => ZoneFormPage(nomsExistants: _noms()),
+        builder: (_) => ZoneFormPage(nomsExistants: noms),
       ),
     );
     if (nouvelle == null || !context.mounted) return;
-    onAjouter(nouvelle);
+
+    // On ajoute via le provider
+    context.read<ZonesProvider>().ajouter(nouvelle);
     _message(context, 'Zone ajoutée');
   }
 
   Future<void> _ouvrirDetail(BuildContext context, Zone zone) async {
+    // On lit les noms (en excluant la zone en cours) depuis le provider
+    final noms = context.read<ZonesProvider>().noms(sauf: zone);
+
     final modifiee = await Navigator.push<Zone>(
       context,
       MaterialPageRoute(
         builder: (_) => ZoneDetailPage(
           zone: zone,
-          nomsAutres: _noms(sauf: zone),
+          nomsAutres: noms,
         ),
       ),
     );
     if (modifiee == null || !context.mounted) return;
-    onRemplacer(zone, modifiee);
+
+    // On remplace via le provider
+    context.read<ZonesProvider>().remplacer(zone, modifiee);
     _message(context, 'Zone modifiée');
   }
 
@@ -76,15 +76,20 @@ class ZonesPage extends StatelessWidget {
       ),
     );
     if (confirme != true || !context.mounted) return;
-    onSupprimer(zone);
+
+    // On supprime via le provider
+    context.read<ZonesProvider>().supprimer(zone);
     _message(context, 'Zone supprimée');
   }
 
   Widget _carte(BuildContext context, Zone zone) {
+    // On récupère le provider une seule fois pour la carte
+    final provider = context.read<ZonesProvider>();
+
     return ZoneCard(
       zone: zone,
-      onAugmenter: () => onModifierHumidite(zone, 5),
-      onDiminuer: () => onModifierHumidite(zone, -5),
+      onAugmenter: () => provider.modifierHumidite(zone, 5),
+      onDiminuer: () => provider.modifierHumidite(zone, -5),
       onTap: () => _ouvrirDetail(context, zone),
       onLongPress: () => _confirmerSuppression(context, zone),
     );
@@ -92,6 +97,10 @@ class ZonesPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 6. ON ÉCOUTE LE PROVIDER ICI (watch)
+    // Toute la page se met à jour si les zones changent
+    final zones = context.watch<ZonesProvider>().zones;
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
