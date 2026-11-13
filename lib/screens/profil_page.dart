@@ -1,19 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart'; // <-- 1. IMPORT PROVIDER
-import 'package:agrismart/providers/zones_provider.dart'; // <-- 2. IMPORT DU PROVIDER
+import 'package:provider/provider.dart';
+import 'package:agrismart/providers/zones_provider.dart';
 import 'package:agrismart/screens/a_propos_page.dart';
+import 'package:agrismart/providers/auth_provider.dart';
 
 class ProfilPage extends StatelessWidget {
-  // 3. SUPPRESSION de "final int nombreZones;"
-
-  // 4. Constructeur vide
   const ProfilPage({super.key});
 
   @override
   Widget build(BuildContext context) {
     final texte = Theme.of(context).textTheme;
-
-    // 5. SELECT : on écoute uniquement le nombre de zones
+    final email = context.select<AuthProvider, String>((a) => a.utilisateur?.email ?? '');
     final nombreZones = context.select<ZonesProvider, int>((p) => p.nombre);
 
     return Scaffold(
@@ -33,18 +30,23 @@ class ProfilPage extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Center(child: Text('Exploitation AgriSmart', style: texte.titleLarge)),
-          const Center(child: Text('Kébili, Tunisie')),
+          Center(child: Text(email)), // Affiche l'email
           const SizedBox(height: 16),
           const Divider(),
 
-          // LIGNE EXISTANTE (utilise maintenant la variable du provider)
           ListTile(
             leading: const Icon(Icons.grass),
             title: const Text('Zones suivies'),
             trailing: Text('$nombreZones'),
           ),
 
-          // TON BOUTON "À PROPOS" (inchangé)
+          // BOUTON DE DÉCONNEXION
+          ListTile(
+            leading: const Icon(Icons.logout, color: Colors.red),
+            title: const Text('Se déconnecter', style: TextStyle(color: Colors.red)),
+            onTap: () => _confirmerDeconnexion(context), // Appel de la méthode
+          ),
+
           ListTile(
             leading: const Icon(Icons.info_outline),
             title: const Text('À propos'),
@@ -59,5 +61,32 @@ class ProfilPage extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  // --- AJOUT DE LA MÉTHODE ICI ---
+  Future<void> _confirmerDeconnexion(BuildContext context) async {
+    final confirme = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Se déconnecter ?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Annuler'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Se déconnecter'),
+          ),
+        ],
+      ),
+    );
+
+    // Si l'utilisateur annule ou ferme la boîte de dialogue
+    if (confirme != true || !context.mounted) return;
+
+    // On appelle la déconnexion du provider
+    // (L'AuthGate s'occupera de renvoyer l'utilisateur vers l'écran de connexion)
+    await context.read<AuthProvider>().deconnexion();
   }
 }
